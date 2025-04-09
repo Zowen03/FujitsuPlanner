@@ -1,0 +1,98 @@
+/* Reset basic layout */
+.App {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+  }
+  
+  /* Fixed Header */
+  .app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #1a1a1a;
+    color: #ffffff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .app-title {
+    font-size: 1.5rem;
+  }
+  
+  /* Account icon */
+.account-logo img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #fff;
+  }
+  .account-logo {
+    max-width: 50px;
+  }
+  
+  /* Main body */
+  .app-body {
+    padding-top: 120px; /* Increased from 100px */
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+  
+  /* Intro section */
+  .intro-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .intro-text {
+    max-width: 600px;
+  }
+  
+  .quick-start-btn {
+    background-color: #0078d4;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .quick-start-btn:hover {
+    background-color: #005ea6;
+  }
+  
+  /* Your Planners section */
+  .planners-section {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  
+  .calendar-preview {
+    margin-top: 1rem;
+    height: 300px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #888;
+    font-size: 1.2rem;
+  }
+  
