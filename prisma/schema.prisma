@@ -1,0 +1,77 @@
+// schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  password_hash String
+  role          String   @default("user")
+  templates     Template[]
+  userPlans     UserPlan[]
+  progressLogs  ProgressLog[]  // Added opposite relation
+}
+
+model Template {
+  id              Int      @id @default(autoincrement())
+  name            String
+  description     String?
+  certification   Certification @relation(fields: [certificationId], references: [id])
+  certificationId Int
+  createdBy       User     @relation(fields: [createdById], references: [id])
+  createdById     Int
+  isPublic        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  tasks           TemplateTask[]
+  userPlans       UserPlan[]  // Added opposite relation
+}
+
+model TemplateTask {
+  id          Int      @id @default(autoincrement())
+  template    Template @relation(fields: [templateId], references: [id])
+  templateId  Int
+  title       String
+  description String?
+  estimated_hours Int?
+  sort_order  Int
+  userTasks   UserTask[]  // Added opposite relation
+}
+
+model UserPlan {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         Int
+  template       Template @relation(fields: [templateId], references: [id])
+  templateId     Int
+  start_date     DateTime
+  target_end_date DateTime?
+  is_completed   Boolean  @default(false)
+  custom_note    String?
+  tasks          UserTask[]
+}
+
+model UserTask {
+  id             Int      @id @default(autoincrement())
+  userPlan       UserPlan @relation(fields: [userPlanId], references: [id])
+  userPlanId     Int
+  templateTask   TemplateTask @relation(fields: [templateTaskId], references: [id])
+  templateTaskId Int
+  completed      Boolean  @default(false)
+  completed_at   DateTime?
+  notes          String?
+}
+
+model ProgressLog {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id])
+  userId         Int
+  date           DateTime
+  hours_studied  Int
+  tasks_completed Int
+}
