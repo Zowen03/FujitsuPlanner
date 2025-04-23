@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Button, Layout, Menu, theme } from 'antd';
-// import Home from './pages/Home.jsx'; // Import Home component
+import Home from './pages/Home.jsx'; // Import Home component
 
 const { Header, Content, Sider } = Layout;
 
@@ -45,11 +45,11 @@ const App: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  // const handleMenuClick = (key: string) => {
-  //   if (key === '1') {
-  //     setSelectedContent(<Home />); // Render Home component when "Fujitsu Growth" is clicked
-  //   }
-  // };
+   const handleMenuClick = (key: string) => {
+     if (key === '1') {
+       setSelectedContent(<Home />); // Render Home component when "Fujitsu Growth" is clicked
+     }
+   };
 
   return (
     <Layout style={{ minHeight: '100vh', minWidth: '100vw' }}>
@@ -61,7 +61,7 @@ const App: React.FC = () => {
           defaultSelectedKeys={['2']}
           items={items1}
           style={{ flex: 1, minWidth: 0 }}
-          // onClick={(e) => handleMenuClick(e.key)} // Handle menu click
+           onClick={(e) => handleMenuClick(e.key)} // Handle menu click
         />
       </Header>
       <Layout style={{ paddingBottom: '48px' }}>
