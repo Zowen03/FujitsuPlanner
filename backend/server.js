@@ -28,7 +28,7 @@ app.use(cors({
   }));
   app.use(
     session({
-      secret: '6bbd49d7ecede784ea467f103573f86981ccbea84bc1bba3af2c9a54ea313bfe', // Replace with a secure secret
+      secret: 'your-secret-key', // Replace with a secure secret
       resave: false,
       saveUninitialized: false,
       cookie: { secure: false }, // Set `secure: true` if using HTTPS

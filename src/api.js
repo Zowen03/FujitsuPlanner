@@ -19,33 +19,32 @@ export const login = async (username, password) => {
   return await response.json();
 };
 
-  export const createTemplate = async (templateData) => {
-    const response = await fetch('http://localhost:3000/api/templates', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(templateData),
-      credentials: 'include', // Include credentials for session
-    });
-    return await response.json();
-  };
+export const createTemplate = async (templateData) => {
+  const response = await fetch('http://localhost:3000/api/templates', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(templateData),
+    credentials: 'include', // Include credentials for session
+  });
+  return await response.json();
+};
 
+export const getTemplates = async (search = '') => {
+  try {
+      const response = await fetch(`http://localhost:3000/api/templates?search=${encodeURIComponent(search)}`, {
+          method: 'GET',
+          credentials: 'include', // Include credentials for session
+      });
 
-  export const getTemplates = async (search = '') => {
-    try {
-        const response = await fetch(`http://localhost:3000/api/templates?search=${encodeURIComponent(search)}`, {
-            method: 'GET',
-            credentials: 'include', // Include credentials for session
-        });
+      if (!response.ok) {
+          throw new Error(`Error fetching templates: ${response.statusText}`);
+      }
 
-        if (!response.ok) {
-            throw new Error(`Error fetching templates: ${response.statusText}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        console.error('Error in getTemplates:', error);
-        throw error;
-    }
+      return await response.json();
+  } catch (error) {
+      console.error('Error in getTemplates:', error);
+      throw error;
+  }
 };
 
 export const getTemplateById = async (id) => {
@@ -66,4 +65,3 @@ export const checkSession = async () => {
       return null;
   }
 };
-

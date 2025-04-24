@@ -1,20 +1,19 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { checkSession } from '../api'; // Add an API call to check the session
+import { checkSession } from '../api';
 
-// Create the UserContext
 export const UserContext = createContext();
 
-// Create the UserProvider component
 export const UserProvider = ({ children }) => {
     const [loggedInUser, setLoggedInUser] = useState(null);
+    const [userDetails, setUserDetails] = useState(null);
 
-    // Check session on initial load
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const user = await checkSession();
-                if (user) {
-                    setLoggedInUser(user.username);
+                const result = await checkSession();
+                if (result.success) {
+                    setLoggedInUser(result.user.username);
+                    setUserDetails(result.user);
                 }
             } catch (error) {
                 console.error('Failed to fetch session:', error);
@@ -24,7 +23,12 @@ export const UserProvider = ({ children }) => {
     }, []);
 
     return (
-        <UserContext.Provider value={{ loggedInUser, setLoggedInUser }}>
+        <UserContext.Provider value={{ 
+            loggedInUser, 
+            setLoggedInUser,
+            userDetails,
+            setUserDetails
+        }}>
             {children}
         </UserContext.Provider>
     );

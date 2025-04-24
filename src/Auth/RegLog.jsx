@@ -1,19 +1,18 @@
 import React, { useState, useContext } from 'react';
-import { Button, Modal, Form, Input, message } from 'antd';
-import { register, login } from '../api';
-import { UserContext } from './UserContext'; // Import the UserContext
+import { Button, Modal, Form, Input, message, Avatar, Upload, Divider, Descriptions } from 'antd';
+import { register, login, uploadProfilePicture } from '../api';
+import { UserContext } from './UserContext';
+import { UserOutlined, CameraOutlined } from '@ant-design/icons';
 
 const RegLog = ({ modalOpen: propModalOpen, setModalOpen: propSetModalOpen }) => {
-    // Get user context
-    const { loggedInUser, setLoggedInUser } = useContext(UserContext);
-    
-    // Use props if provided, otherwise use internal state for modal
-    const isModalControlled = propModalOpen !== undefined;
-    const [internalModalOpen, setInternalModalOpen] = useState(false);
+    const { loggedInUser, setLoggedInUser, userDetails, setUserDetails } = useContext(UserContext);
     const [logoutModalOpen, setLogoutModalOpen] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
+    const [fileList, setFileList] = useState([]);
+    const [uploading, setUploading] = useState(false);
 
-    // Determine which modal state to use
+    const isModalControlled = propModalOpen !== undefined;
+    const [internalModalOpen, setInternalModalOpen] = useState(false);
     const modalOpen = isModalControlled ? propModalOpen : internalModalOpen;
     const setModalOpen = isModalControlled ? propSetModalOpen : setInternalModalOpen;
 
@@ -26,6 +25,7 @@ const RegLog = ({ modalOpen: propModalOpen, setModalOpen: propSetModalOpen }) =>
                 if (result.success) {
                     message.success('Login successful!');
                     setLoggedInUser(username);
+                    setUserDetails(result.userDetails || { username });
                     setModalOpen(false);
                 } else {
                     message.error(result.error || 'Invalid credentials');
@@ -46,23 +46,80 @@ const RegLog = ({ modalOpen: propModalOpen, setModalOpen: propSetModalOpen }) =>
 
     const handleLogout = () => {
         setLoggedInUser(null);
+        setUserDetails(null);
         setLogoutModalOpen(false);
         message.success('Logged out successfully!');
     };
 
-    // Render the button only if the modal is not controlled
-    const renderButton = !isModalControlled && (
-        <Button 
-            type="primary" 
-            onClick={() => loggedInUser ? setLogoutModalOpen(true) : setModalOpen(true)}
-        >
-            {loggedInUser ? loggedInUser : isLogin ? 'Login' : 'Register'}
-        </Button>
-    );
+    const handleUpload = async (file) => {
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('profilePicture', file);
+            formData.append('username', loggedInUser);
+            
+            const result = await uploadProfilePicture(formData);
+            if (result.success) {
+                message.success('Profile picture updated!');
+                setUserDetails({
+                    ...userDetails,
+                    profilePicture: result.profilePictureUrl
+                });
+                setFileList([]);
+            } else {
+                message.error(result.error || 'Failed to upload profile picture');
+            }
+        } catch (error) {
+            message.error('Upload failed');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const uploadProps = {
+        onRemove: () => {
+            setFileList([]);
+        },
+        beforeUpload: (file) => {
+            setFileList([file]);
+            handleUpload(file);
+            return false;
+        },
+        fileList,
+        maxCount: 1,
+        accept: 'image/*',
+        showUploadList: true
+    };
 
     return (
         <>
-            {renderButton}
+            {!isModalControlled && (
+                <Button 
+                  type="primary" 
+                    onClick={() => loggedInUser ? setLogoutModalOpen(true) : setModalOpen(true)}
+                    style={{ 
+                        height: 'auto', // Allow button to expand vertically
+                        padding: '12px 16px', // Adjust padding as needed
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px' // Space between avatar and text
+                    }}
+>
+                {loggedInUser ? (
+                    <>
+                        <Avatar 
+                            size="large"  // or use a specific number like 32
+                            src={userDetails?.profilePicture} 
+                            icon={<UserOutlined />}
+                            style={{ margin: 0 }} // Remove any horizontal margin
+                        />
+                        <span style={{ fontSize: '0.85em' }}>{loggedInUser}</span>
+                    </>
+                ) : isLogin ? 'Login' : 'Register'}
+            </Button>
+            )}
             
             {/* Login/Register Modal */}
             <Modal
@@ -121,22 +178,54 @@ const RegLog = ({ modalOpen: propModalOpen, setModalOpen: propSetModalOpen }) =>
                 </Form>
             </Modal>
 
-            {/* Logout Modal - only shown when using internal modal state */}
+            {/* Account Details Modal */}
             {!isModalControlled && (
                 <Modal
-                    title="Logout"
+                    title="Account Details"
                     open={logoutModalOpen}
                     onCancel={() => setLogoutModalOpen(false)}
                     footer={[
                         <Button key="cancel" onClick={() => setLogoutModalOpen(false)}>
-                            Cancel
+                            Close
                         </Button>,
-                        <Button key="logout" type="primary" onClick={handleLogout}>
+                        <Button key="logout" type="primary" danger onClick={handleLogout}>
                             Logout
                         </Button>,
                     ]}
+                    width={600}
                 >
-                    <p>Are you sure you want to log out?</p>
+                    <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                        <Upload {...uploadProps}>
+                            <Avatar 
+                                size={128} 
+                                src={userDetails?.profilePicture} 
+                                icon={<UserOutlined />}
+                                style={{ cursor: 'pointer' }}
+                            />
+                            <div style={{ marginTop: 16 }}>
+                                <Button 
+                                    icon={<CameraOutlined />} 
+                                    loading={uploading}
+                                >
+                                    Change Profile Picture
+                                </Button>
+                            </div>
+                        </Upload>
+                    </div>
+
+                    <Divider />
+
+                    <Descriptions bordered column={1}>
+                        <Descriptions.Item label="Username">
+                            {loggedInUser}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Member Since">
+                            {userDetails?.createdAt ? new Date(userDetails.createdAt).toLocaleDateString() : 'Unknown'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Email">
+                            {userDetails?.email || 'Not provided'}
+                        </Descriptions.Item>
+                    </Descriptions>
                 </Modal>
             )}
         </>

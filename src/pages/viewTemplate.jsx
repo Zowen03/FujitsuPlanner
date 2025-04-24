@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { List, Input, Button, Card, Tag, Space, Typography, Modal } from 'antd';
+import { List, Input, Button, Card, Tag, Space, Typography, Modal, Divider, Avatar } from 'antd';
 import { getTemplates } from '../api';
+import { UserOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 const { Title, Text } = Typography;
@@ -9,10 +10,10 @@ const TemplateList = () => {
     const [templates, setTemplates] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
-    const [selectedTemplate, setSelectedTemplate] = useState(null); // State for selected template
-    const [isModalOpen, setIsModalOpen] = useState(false); // State for view modal visibility
-    const [isUseModalOpen, setIsUseModalOpen] = useState(false); // State for use template modal visibility
-    const [hoursPerWeek, setHoursPerWeek] = useState(''); // State for hours input
+    const [selectedTemplate, setSelectedTemplate] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isUseModalOpen, setIsUseModalOpen] = useState(false);
+    const [hoursPerWeek, setHoursPerWeek] = useState('');
 
     const loadTemplates = async () => {
         setLoading(true);
@@ -41,62 +42,73 @@ const TemplateList = () => {
     };
 
     const handleModalClose = () => {
-        setSelectedTemplate(null);
         setIsModalOpen(false);
     };
 
     const handleUseModalClose = () => {
-        setSelectedTemplate(null);
         setIsUseModalOpen(false);
         setHoursPerWeek('');
     };
 
     const handleUseTemplateSubmit = () => {
         console.log(`Using template: ${selectedTemplate.name}, Hours per week: ${hoursPerWeek}`);
-        // Add your logic for using the template here
         handleUseModalClose();
     };
 
     return (
-        <div style={{ padding: '24px' }}>
-            <Title level={1}>Templates</Title>
+        <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+            <Title level={2} style={{ marginBottom: '24px' }}>Templates</Title>
             
-            <Space direction="vertical" style={{ width: '100%', marginBottom: 24 }}>
+            <div style={{ marginBottom: '24px' }}>
                 <Search
-                    placeholder="Search templates or tasks"
+                    placeholder="Search templates by name or creator"
                     allowClear
-                    enterButton
+                    enterButton="Search"
                     size="large"
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                     onSearch={loadTemplates}
+                    style={{ maxWidth: '600px' }}
                 />
-            </Space>
+            </div>
 
             <List
-                grid={{ gutter: 16, xs: 1, sm: 2, md: 3, lg: 3, xl: 4, xxl: 4 }}
+                grid={{ gutter: 24, xs: 1, sm: 2, md: 2, lg: 3, xl: 3, xxl: 4 }}
                 dataSource={templates}
                 loading={loading}
                 renderItem={(template) => (
                     <List.Item>
                         <Card
-                            title={template.name}
+                            title={<Text strong>{template.name}</Text>}
                             extra={<Tag color="blue">{Array.isArray(template.tasks) ? template.tasks.length : 0} tasks</Tag>}
-                            style={{ height: '100%' }}
+                            style={{ height: '100%', borderRadius: '8px' }}
                             actions={[
-                                <Button type="link" onClick={() => handleViewTemplate(template)}>View</Button>,
-                                <Button type="link" onClick={() => handleUseTemplate(template)}>Use Template</Button>
+                                <Button type="link" onClick={() => handleViewTemplate(template)}>Details</Button>,
+                                <Button type="primary" onClick={() => handleUseTemplate(template)}>Use</Button>
                             ]}
+                            headStyle={{ borderBottom: '1px solid #f0f0f0' }}
                         >
-                            <Text type="secondary">Created: {new Date(template.createdAt).toLocaleDateString()}</Text>
-                            <div style={{ marginTop: 12 }}>
-                                {Array.isArray(template.tasks) && template.tasks.slice(0, 3).map(task => (
-                                    <div key={task.id} style={{ marginBottom: 4 }}>
-                                        <Text>{task.name}</Text> - <Text type="secondary">{task.time} hours</Text>
+                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                                <Avatar 
+                                    size="small" 
+                                    icon={<UserOutlined />} 
+                                    style={{ marginRight: '8px' }} 
+                                />
+                                <Text type="secondary">{template.createdBy || 'Unknown user'}</Text>
+                            </div>
+                            <Text type="secondary" style={{ display: 'block', marginBottom: '12px' }}>
+                                Created: {new Date(template.createdAt).toLocaleDateString()}
+                            </Text>
+                            <Divider style={{ margin: '12px 0' }} />
+                            <div style={{ maxHeight: '120px', overflow: 'auto' }}>
+                                {Array.isArray(template.tasks) && template.tasks.slice(0, 4).map(task => (
+                                    <div key={task.id} style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                                        <Text ellipsis style={{ maxWidth: '70%' }}>{task.name}</Text>
+                                        <Text type="secondary">{task.time}h</Text>
                                     </div>
                                 ))}
-                                {Array.isArray(template.tasks) && template.tasks.length > 3 && (
-                                    <Text type="secondary">+ {template.tasks.length - 3} more tasks</Text>
+                                {Array.isArray(template.tasks) && template.tasks.length > 4 && (
+                                    <Text type="secondary">+ {template.tasks.length - 4} more tasks</Text>
                                 )}
                             </div>
                         </Card>
@@ -104,25 +116,66 @@ const TemplateList = () => {
                 )}
             />
 
-            {/* Modal for viewing template details */}
+            {/* Template Details Modal */}
             <Modal
-                title={selectedTemplate?.name}
+                title={<Title level={3} style={{ marginBottom: 0 }}>{selectedTemplate?.name}</Title>}
                 open={isModalOpen}
                 onCancel={handleModalClose}
                 footer={[
                     <Button key="close" onClick={handleModalClose}>
                         Close
+                    </Button>,
+                    <Button 
+                        key="use" 
+                        type="primary" 
+                        onClick={() => {
+                            handleModalClose();
+                            handleUseTemplate(selectedTemplate);
+                        }}
+                    >
+                        Use This Template
                     </Button>
                 ]}
+                width={800}
             >
                 {selectedTemplate && (
                     <div>
-                        <Text type="secondary">Created: {new Date(selectedTemplate.createdAt).toLocaleDateString()}</Text>
-                        <div style={{ marginTop: 12 }}>
-                            <Title level={4}>Tasks</Title>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                            <Avatar 
+                                size="default" 
+                                icon={<UserOutlined />} 
+                                style={{ marginRight: '12px' }} 
+                            />
+                            <div>
+                                <Text strong>Created by: </Text>
+                                <Text>{selectedTemplate.createdBy || 'Unknown user'}</Text>
+                                <div>
+                                    <Text type="secondary">
+                                        Created on: {new Date(selectedTemplate.createdAt).toLocaleDateString()}
+                                    </Text>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Divider orientation="left">Tasks</Divider>
+                        
+                        <div style={{ maxHeight: '400px', overflow: 'auto' }}>
                             {Array.isArray(selectedTemplate.tasks) && selectedTemplate.tasks.map(task => (
-                                <div key={task.id} style={{ marginBottom: 8 }}>
-                                    <Text strong>{task.name}</Text> - <Text type="secondary">{task.time} hours</Text>
+                                <div key={task.id} style={{ 
+                                    marginBottom: '12px', 
+                                    padding: '12px', 
+                                    backgroundColor: '#fafafa',
+                                    borderRadius: '4px',
+                                    display: 'flex',
+                                    justifyContent: 'space-between'
+                                }}>
+                                    <div style={{ flex: 1 }}>
+                                        <Text strong style={{ display: 'block' }}>{task.name}</Text>
+                                        <Text type="secondary" style={{ fontSize: '12px' }}>
+                                            Added by: {task.createdBy || selectedTemplate.createdBy || 'Unknown user'}
+                                        </Text>
+                                    </div>
+                                    <Tag color="blue" style={{ marginLeft: '12px' }}>{task.time} hours</Tag>
                                 </div>
                             ))}
                             {(!selectedTemplate.tasks || selectedTemplate.tasks.length === 0) && (
@@ -133,42 +186,68 @@ const TemplateList = () => {
                 )}
             </Modal>
 
-            {/* Modal for using template */}
+            {/* Use Template Modal */}
             <Modal
-                title={`Use Template: ${selectedTemplate?.name}`}
+                title={<Title level={3} style={{ marginBottom: 0 }}>Use Template: {selectedTemplate?.name}</Title>}
                 open={isUseModalOpen}
                 onCancel={handleUseModalClose}
                 footer={[
                     <Button key="cancel" onClick={handleUseModalClose}>
                         Cancel
                     </Button>,
-                    <Button key="submit" type="primary" onClick={handleUseTemplateSubmit}>
-                        Submit
+                    <Button 
+                        key="submit" 
+                        type="primary" 
+                        onClick={handleUseTemplateSubmit}
+                        disabled={!hoursPerWeek}
+                    >
+                        Confirm
                     </Button>
                 ]}
+                width={600}
             >
                 {selectedTemplate && (
                     <div>
-                        <Text type="secondary">Created: {new Date(selectedTemplate.createdAt).toLocaleDateString()}</Text>
+                        <div style={{ marginBottom: '24px' }}>
+                            <Text>You are about to use the template:</Text>
+                            <Title level={4} style={{ marginTop: '8px' }}>{selectedTemplate.name}</Title>
+                            <Text type="secondary" style={{ display: 'block' }}>
+                                Created by: {selectedTemplate.createdBy || 'Unknown user'}
+                            </Text>
+                        </div>
 
-                            <div style={{ marginTop: 24 }}>
-                                <Title level={4}>Tasks</Title>
-                                {Array.isArray(selectedTemplate.tasks) && selectedTemplate.tasks.map(task => (
-                                    <div key={task.id} style={{ marginBottom: 8 }}>
-                                        <Text strong>{task.name}</Text> - <Text type="secondary">{task.time} hours</Text>
+                        <Divider orientation="left">Tasks Summary</Divider>
+                        
+                        <div style={{ marginBottom: '24px' }}>
+                            {Array.isArray(selectedTemplate.tasks) && (
+                                <>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                        <Text strong>Total Tasks:</Text>
+                                        <Text>{selectedTemplate.tasks.length}</Text>
                                     </div>
-                                ))}
-                                {(!selectedTemplate.tasks || selectedTemplate.tasks.length === 0) && (
-                                    <Text type="secondary">No tasks available</Text>
-                                )}
-                            </div>
-                            <div style={{ marginTop: 12 }}>
-                            <Title level={4}>How many hours a week can you do?</Title>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Text strong>Total Hours:</Text>
+                                        <Text>
+                                            {selectedTemplate.tasks.reduce((sum, task) => sum + parseFloat(task.time || 0), 0)} hours
+                                        </Text>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <Divider orientation="left">Schedule</Divider>
+                        
+                        <div style={{ marginTop: '16px' }}>
+                            <Text strong style={{ display: 'block', marginBottom: '8px' }}>
+                                How many hours per week can you dedicate?
+                            </Text>
                             <Input
                                 type="number"
                                 placeholder="Enter hours per week"
                                 value={hoursPerWeek}
                                 onChange={(e) => setHoursPerWeek(e.target.value)}
+                                style={{ width: '200px' }}
+                                min={1}
                             />
                         </div>
                     </div>
