@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import session from 'express-session';
 
 // Add these lines to debug file paths
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +26,23 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type']
   }));
+  app.use(
+    session({
+      secret: '6bbd49d7ecede784ea467f103573f86981ccbea84bc1bba3af2c9a54ea313bfe', // Replace with a secure secret
+      resave: false,
+      saveUninitialized: false,
+      cookie: { secure: false }, // Set `secure: true` if using HTTPS
+    })
+  );
+
+  // Middleware to check if the user is logged in
+function isAuthenticated(req, res, next) {
+    if (req.session && req.session.user) {
+      next();
+    } else {
+      res.status(401).json({ error: 'Unauthorized. Please log in.' });
+    }
+  }
 
 // Helper to read/write DB
 function readDB() {
@@ -65,36 +83,29 @@ app.post('/api/register', (req, res) => {
 });
 
 app.post('/api/login', (req, res) => {
-  const db = readDB();
-  const { username, password } = req.body;
-  const user = db.users.find(u => u.username === username && u.password === password);
-
-  res.json({ success: !!user, user });
-});
-
-app.post('/api/templates', (req, res) => {
+    console.log('Login request body:', req.body); // Debugging
     const db = readDB();
-    const newTemplate = {
-      id: Date.now().toString(),
-      name: req.body.name,
-      tasks: req.body.tasks,
-      createdAt: new Date().toISOString()
-    };
-    
-    db.templates = db.templates || [];
-    db.templates.push(newTemplate);
-    writeDB(db);
-    
-    res.json({ success: true, template: newTemplate });
-  });
+    const { username, password } = req.body;
+    const user = db.users.find(u => u.username === username && u.password === password);
   
-  app.get('/api/templates', (req, res) => {
+    if (user) {
+      req.session.user = { username }; // Store user in session
+      res.json({ success: true, user });
+    } else {
+      res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+  });
+
+  app.get('/api/templates', isAuthenticated, (req, res) => {
     const { search } = req.query;
     const db = readDB();
     let templates = db.templates || [];
   
+    // Filter templates by the logged-in user
+    templates = templates.filter(t => t.createdBy === req.session.user.username);
+  
     if (search) {
-      templates = templates.filter(t => 
+      templates = templates.filter(t =>
         t.name.toLowerCase().includes(search.toLowerCase()) ||
         t.tasks.some(task => task.name.toLowerCase().includes(search.toLowerCase()))
       );
@@ -103,12 +114,21 @@ app.post('/api/templates', (req, res) => {
     res.json(templates);
   });
   
-  app.get('/api/templates/:id', (req, res) => {
-    const templates = JSON.parse(fs.readFileSync(DB_FILE)).templates || [];
-    const template = templates.find(t => t.id === req.params.id);
-    
-    if (!template) return res.status(404).json({ error: 'Template not found' });
-    res.json(template);
+  app.post('/api/templates', isAuthenticated, (req, res) => {
+    const db = readDB();
+    const newTemplate = {
+      id: Date.now().toString(),
+      name: req.body.name,
+      tasks: req.body.tasks,
+      createdAt: new Date().toISOString(),
+      createdBy: req.session.user.username, // Attach the logged-in user
+    };
+  
+    db.templates = db.templates || [];
+    db.templates.push(newTemplate);
+    writeDB(db);
+  
+    res.json({ success: true, template: newTemplate });
   });
 
 app.listen(3000, () => console.log('Backend running on Server running with CORS support'));

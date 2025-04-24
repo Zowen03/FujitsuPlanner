@@ -1,31 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Button, Modal, Form, Input, message } from 'antd';
-import { register, login } from '../api'; // Adjust the import path as necessary
+import { register, login } from '../api';
+import { UserContext } from './UserContext'; // Import the UserContext
 
-const RegLog = () => {
-    const [modalOpen, setModalOpen] = useState(false);
-    const [logoutModalOpen, setLogoutModalOpen] = useState(false); // State for logout modal
+const RegLog = ({ modalOpen: propModalOpen, setModalOpen: propSetModalOpen }) => {
+    // Get user context
+    const { loggedInUser, setLoggedInUser } = useContext(UserContext);
+    
+    // Use props if provided, otherwise use internal state for modal
+    const isModalControlled = propModalOpen !== undefined;
+    const [internalModalOpen, setInternalModalOpen] = useState(false);
+    const [logoutModalOpen, setLogoutModalOpen] = useState(false);
     const [isLogin, setIsLogin] = useState(true);
-    const [loggedInUser, setLoggedInUser] = useState(null); // State to store the logged-in user's username
+
+    // Determine which modal state to use
+    const modalOpen = isModalControlled ? propModalOpen : internalModalOpen;
+    const setModalOpen = isModalControlled ? propSetModalOpen : setInternalModalOpen;
 
     const handleSubmit = async (values) => {
         try {
             const { username, password } = values;
-            
+
             if (isLogin) {
                 const result = await login(username, password);
                 if (result.success) {
                     message.success('Login successful!');
-                    setLoggedInUser(username); // Set the logged-in user's username
+                    setLoggedInUser(username);
                     setModalOpen(false);
                 } else {
-                    message.error('Invalid credentials');
+                    message.error(result.error || 'Invalid credentials');
                 }
             } else {
                 const result = await register(username, password);
                 if (result.success) {
                     message.success('Registration successful!');
-                    setIsLogin(true); // Switch to login after registration
+                    setIsLogin(true);
                 } else {
                     message.error(result.error || 'Registration failed');
                 }
@@ -36,19 +45,24 @@ const RegLog = () => {
     };
 
     const handleLogout = () => {
-        setLoggedInUser(null); // Clear the logged-in user's username
-        setLogoutModalOpen(false); // Close the logout modal
+        setLoggedInUser(null);
+        setLogoutModalOpen(false);
         message.success('Logged out successfully!');
     };
 
+    // Render the button only if the modal is not controlled
+    const renderButton = !isModalControlled && (
+        <Button 
+            type="primary" 
+            onClick={() => loggedInUser ? setLogoutModalOpen(true) : setModalOpen(true)}
+        >
+            {loggedInUser ? loggedInUser : isLogin ? 'Login' : 'Register'}
+        </Button>
+    );
+
     return (
         <>
-            <Button 
-                type="primary" 
-                onClick={() => loggedInUser ? setLogoutModalOpen(true) : setModalOpen(true)}
-            >
-                {loggedInUser ? loggedInUser : isLogin ? 'Login' : 'Register'}
-            </Button>
+            {renderButton}
             
             {/* Login/Register Modal */}
             <Modal
@@ -64,7 +78,7 @@ const RegLog = () => {
                     >
                         <Input placeholder="Username" />
                     </Form.Item>
-                    
+
                     <Form.Item
                         name="password"
                         rules={[{ required: true, message: 'Please input your password!' }]}
@@ -77,7 +91,7 @@ const RegLog = () => {
                             name="confirmPassword"
                             dependencies={['password']}
                             rules={[
-                                { required: true },
+                                { required: true, message: 'Please confirm your password!' },
                                 ({ getFieldValue }) => ({
                                     validator(_, value) {
                                         if (!value || getFieldValue('password') === value) {
@@ -96,8 +110,8 @@ const RegLog = () => {
                         <Button type="primary" htmlType="submit">
                             {isLogin ? 'Login' : 'Register'}
                         </Button>
-                        <Button 
-                            type="link" 
+                        <Button
+                            type="link"
                             onClick={() => setIsLogin(!isLogin)}
                             style={{ marginLeft: 10 }}
                         >
@@ -107,22 +121,24 @@ const RegLog = () => {
                 </Form>
             </Modal>
 
-            {/* Logout Modal */}
-            <Modal
-                title="Logout"
-                open={logoutModalOpen}
-                onCancel={() => setLogoutModalOpen(false)}
-                footer={[
-                    <Button key="cancel" onClick={() => setLogoutModalOpen(false)}>
-                        Cancel
-                    </Button>,
-                    <Button key="logout" type="primary" onClick={handleLogout}>
-                        Logout
-                    </Button>,
-                ]}
-            >
-                <p>Are you sure you want to log out?</p>
-            </Modal>
+            {/* Logout Modal - only shown when using internal modal state */}
+            {!isModalControlled && (
+                <Modal
+                    title="Logout"
+                    open={logoutModalOpen}
+                    onCancel={() => setLogoutModalOpen(false)}
+                    footer={[
+                        <Button key="cancel" onClick={() => setLogoutModalOpen(false)}>
+                            Cancel
+                        </Button>,
+                        <Button key="logout" type="primary" onClick={handleLogout}>
+                            Logout
+                        </Button>,
+                    ]}
+                >
+                    <p>Are you sure you want to log out?</p>
+                </Modal>
+            )}
         </>
     );
 };
