@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { List, Input, Button, Card, Tag, Space, Typography, Modal, Divider, Avatar } from 'antd';
+import { List, Input, Button, Card, Tag, Space, Typography, Modal, Divider } from 'antd';
 import { getTemplates } from '../api';
-import { UserOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 const { Title, Text } = Typography;
@@ -88,14 +87,6 @@ const TemplateList = () => {
                             ]}
                             headStyle={{ borderBottom: '1px solid #f0f0f0' }}
                         >
-                            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
-                                <Avatar 
-                                    size="small" 
-                                    icon={<UserOutlined />} 
-                                    style={{ marginRight: '8px' }} 
-                                />
-                                <Text type="secondary">{template.createdBy || 'Unknown user'}</Text>
-                            </div>
                             <Text type="secondary" style={{ display: 'block', marginBottom: '12px' }}>
                                 Created: {new Date(template.createdAt).toLocaleDateString()}
                             </Text>
@@ -140,21 +131,12 @@ const TemplateList = () => {
             >
                 {selectedTemplate && (
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                            <Avatar 
-                                size="default" 
-                                icon={<UserOutlined />} 
-                                style={{ marginRight: '12px' }} 
-                            />
-                            <div>
-                                <Text strong>Created by: </Text>
-                                <Text>{selectedTemplate.createdBy || 'Unknown user'}</Text>
-                                <div>
-                                    <Text type="secondary">
-                                        Created on: {new Date(selectedTemplate.createdAt).toLocaleDateString()}
-                                    </Text>
-                                </div>
-                            </div>
+                        <Text strong>Created by: </Text>
+                        <Text>{selectedTemplate.createdBy || 'Unknown user'}</Text>
+                        <div>
+                            <Text type="secondary">
+                                Created on: {new Date(selectedTemplate.createdAt).toLocaleDateString()}
+                            </Text>
                         </div>
 
                         <Divider orientation="left">Tasks</Divider>
