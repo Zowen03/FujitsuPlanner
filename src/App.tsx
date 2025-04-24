@@ -9,14 +9,21 @@ import {
 import type { MenuProps } from 'antd';
 import { Button, Layout, Menu, theme } from 'antd';
 import Home from './pages/Home.jsx'; // Import Home component
+import RegLog from './Auth/RegLog.jsx'; // Import RegLog component
 
 const { Header, Content, Sider } = Layout;
 
 const items1: MenuProps['items'] = [
   {
+    key: '2',
+    label: <RegLog />, // Use the label property to render the RegLog component
+  },
+  {
     key: '1',
     label: 'Fujitsu Growth',
   },
+
+  
 ];
 
 const items2: MenuProps['items'] = [UserOutlined, LaptopOutlined, NotificationOutlined].map(
