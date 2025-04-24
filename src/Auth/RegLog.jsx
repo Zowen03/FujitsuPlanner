@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { Button, Modal, Form, Input, message, Avatar, Upload, Divider, Descriptions } from 'antd';
-import { register, login, uploadProfilePicture } from '../api';
+import { register, login, /*uploadProfilePicture */ } from '../api';
 import { UserContext } from './UserContext';
 import { UserOutlined, CameraOutlined } from '@ant-design/icons';
 
@@ -58,17 +58,17 @@ const RegLog = ({ modalOpen: propModalOpen, setModalOpen: propSetModalOpen }) =>
             formData.append('profilePicture', file);
             formData.append('username', loggedInUser);
             
-            const result = await uploadProfilePicture(formData);
-            if (result.success) {
-                message.success('Profile picture updated!');
-                setUserDetails({
-                    ...userDetails,
-                    profilePicture: result.profilePictureUrl
-                });
-                setFileList([]);
-            } else {
-                message.error(result.error || 'Failed to upload profile picture');
-            }
+            // const result = await uploadProfilePicture(formData);
+            // if (result.success) {
+            //     message.success('Profile picture updated!');
+            //     setUserDetails({
+            //         ...userDetails,
+            //         profilePicture: result.profilePictureUrl
+            //     });
+            //     setFileList([]);
+            // } else {
+            //     message.error(result.error || 'Failed to upload profile picture');
+            // }
         } catch (error) {
             message.error('Upload failed');
         } finally {

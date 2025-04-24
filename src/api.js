@@ -53,15 +53,65 @@ export const getTemplateById = async (id) => {
 };
 
 export const checkSession = async () => {
-  const response = await fetch('http://localhost:3000/api/session', {
-      method: 'GET',
-      credentials: 'include', // Include credentials for session
-  });
+  try {
+    const response = await fetch('/api/session', {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      return { success: false, error: 'Session check failed' };
+    }
+    
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      return { success: false, error: 'Invalid response format' };
+    }
+    
+    return await response.json();
+  } catch (error) {
+    return { success: false, error: 'Network error' };
+  }
+};
 
-  if (response.ok) {
-      const data = await response.json();
-      return data.user;
-  } else {
-      return null;
+export const assignTemplate = async (data) => {
+  try {
+      const response = await fetch('http://localhost:3000/api/assignments', { // Full URL to backend
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          credentials: 'include' // Important for sessions
+      });
+      
+      if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+      }
+      
+      return await response.json();
+  } catch (error) {
+      console.error('Failed to assign template:', error);
+      return { success: false, error: error.message };
+  }
+};
+
+export const getAssignments = async () => {
+  try {
+    const response = await fetch('http://localhost:3000/api/assignments', { // Add full URL
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('Error fetching assignments:', error);
+    return [];
   }
 };
