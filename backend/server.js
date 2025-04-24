@@ -131,4 +131,66 @@ app.post('/api/login', (req, res) => {
     res.json({ success: true, template: newTemplate });
   });
 
+  app.post('/api/assignments', isAuthenticated, (req, res) => {
+    const db = readDB();
+    const { templateId, startDate, hoursPerWeek } = req.body;
+    
+    const template = db.templates.find(t => t.id === templateId);
+    if (!template) {
+      return res.status(404).json({ error: 'Template not found' });
+    }
+  
+    const assignment = {
+      id: Date.now().toString(),
+      templateId,
+      userId: req.session.user.username,
+      startDate,
+      hoursPerWeek,
+      createdAt: new Date().toISOString(),
+      status: 'active'
+    };
+  
+    db.assignments = db.assignments || [];
+    db.assignments.push(assignment);
+    writeDB(db);
+  
+    res.json({ success: true, assignment });
+  });
+  
+app.get('/api/assignments', isAuthenticated, (req, res) => {
+  const db = readDB();
+  const assignments = db.assignments?.filter(a => a.userId === req.session.user.username) || [];
+  
+  // Join with template data
+  const assignmentsWithTemplates = assignments.map(assignment => {
+    const template = db.templates?.find(t => t.id === assignment.templateId);
+    return {
+      ...assignment,
+      templateName: template?.name || `Template ${assignment.templateId.slice(-4)}`
+    };
+  });
+  
+  res.json(assignmentsWithTemplates);
+});
+
+  app.get('/api/session', (req, res) => {
+    if (req.session.user) {
+      const db = readDB();
+      const user = db.users.find(u => u.username === req.session.user.username);
+      
+      if (user) {
+        return res.json({
+          success: true,
+          user: {
+            username: user.username,
+            createdAt: user.createdAt,
+            profilePicture: user.profilePicture
+          }
+        });
+      }
+    }
+    
+    res.status(401).json({ success: false, error: 'Not authenticated' });
+  });
+
 app.listen(3000, () => console.log('Backend running on Server running with CORS support'));
