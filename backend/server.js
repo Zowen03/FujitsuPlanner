@@ -72,4 +72,25 @@ app.post('/api/login', (req, res) => {
   res.json({ success: !!user, user });
 });
 
+app.post('/api/templates', (req, res) => {
+    const db = readDB();
+    const newTemplate = {
+      id: Date.now().toString(),
+      name: req.body.name,
+      tasks: req.body.tasks,
+      createdAt: new Date().toISOString()
+    };
+    
+    db.templates = db.templates || [];
+    db.templates.push(newTemplate);
+    writeDB(db);
+    
+    res.json({ success: true, template: newTemplate });
+  });
+  
+  app.get('/api/templates', (req, res) => {
+    const db = readDB();
+    res.json({ templates: db.templates || [] });
+  });
+
 app.listen(3000, () => console.log('Backend running on Server running with CORS support'));
