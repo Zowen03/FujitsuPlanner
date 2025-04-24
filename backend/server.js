@@ -89,8 +89,26 @@ app.post('/api/templates', (req, res) => {
   });
   
   app.get('/api/templates', (req, res) => {
+    const { search } = req.query;
     const db = readDB();
-    res.json({ templates: db.templates || [] });
+    let templates = db.templates || [];
+  
+    if (search) {
+      templates = templates.filter(t => 
+        t.name.toLowerCase().includes(search.toLowerCase()) ||
+        t.tasks.some(task => task.name.toLowerCase().includes(search.toLowerCase()))
+      );
+    }
+  
+    res.json(templates);
+  });
+  
+  app.get('/api/templates/:id', (req, res) => {
+    const templates = JSON.parse(fs.readFileSync(DB_FILE)).templates || [];
+    const template = templates.find(t => t.id === req.params.id);
+    
+    if (!template) return res.status(404).json({ error: 'Template not found' });
+    res.json(template);
   });
 
 app.listen(3000, () => console.log('Backend running on Server running with CORS support'));

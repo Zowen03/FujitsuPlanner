@@ -26,7 +26,22 @@ export const createTemplate = async (templateData) => {
   return await response.json();
 };
 
-export const getTemplates = async () => {
-  const response = await fetch('http://localhost:3000/api/templates');
+
+export const getTemplates = async (search = '') => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/templates?search=${encodeURIComponent(search)}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching templates: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error in getTemplates:', error);
+    return []; // Return an empty array on error
+  }
+};
+
+export const getTemplateById = async (id) => {
+  const response = await fetch(`http://localhost:3000/api/templates/${id}`);
   return await response.json();
 };
+

@@ -11,6 +11,7 @@ import { Button, Layout, Menu, theme } from 'antd';
 import Home from './pages/Home.jsx'; // Import Home component
 import RegLog from './Auth/RegLog.jsx'; // Import RegLog component
 import CreateTemplate from './pages/CreateTemplate.jsx'; // Import CreateTemplate component
+import TemplateList from './Pages/viewTemplate.jsx'; // Import ViewTemplate component
 
 const { Header, Content, Sider } = Layout;
 
@@ -58,7 +59,9 @@ const App: React.FC = () => {
        setSelectedContent(<Home />); // Render Home component when "Fujitsu Growth" is clicked
      } else if (key === 'sub3') {
        setSelectedContent(<CreateTemplate />); // Render CreateTemplate component when "Create Template" is clicked
-     }
+     } else if (key === 'sub2') {
+        setSelectedContent(<TemplateList />); // Render ViewTemplate component when "View Templates" is clicked
+      }
    };
 
   return (
