@@ -10,40 +10,41 @@ import type { MenuProps } from 'antd';
 import { Button, Layout, Menu, theme } from 'antd';
 import Home from './pages/Home.jsx'; // Import Home component
 import RegLog from './Auth/RegLog.jsx'; // Import RegLog component
+import CreateTemplate from './pages/CreateTemplate.jsx'; // Import CreateTemplate component
 
 const { Header, Content, Sider } = Layout;
 
 const items1: MenuProps['items'] = [
   {
-    key: '2',
+    key: 'head2',
     label: <RegLog />, // Use the label property to render the RegLog component
   },
   {
-    key: '1',
+    key: 'head1',
     label: 'Fujitsu Growth',
   },
 
   
 ];
 
-const items2: MenuProps['items'] = [UserOutlined, LaptopOutlined, NotificationOutlined].map(
-  (icon, index) => {
-    const key = String(index + 1);
-
-    return {
-      key: `sub${key}`,
-      icon: React.createElement(icon),
-      label: `subnav ${key}`,
-      children: Array.from({ length: 4 }).map((_, j) => {
-        const subKey = index * 4 + j + 1;
-        return {
-          key: subKey,
-          label: `option${subKey}`,
-        };
-      }),
-    };
+const items2: MenuProps['items'] = [
+  {
+    key: 'sub1',
+    icon: <UserOutlined />,
+    label: 'View Current Templates',
+    children: [], // This will dynamically hold an unknown amount of sub-options
   },
-);
+  {
+    key: 'sub2',
+    icon: <LaptopOutlined />,
+    label: 'View Templates',
+  },
+  {
+    key: 'sub3',
+    icon: <NotificationOutlined />,
+    label: 'Create Template',
+  },
+];
 
 const App: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -53,8 +54,10 @@ const App: React.FC = () => {
   } = theme.useToken();
 
    const handleMenuClick = (key: string) => {
-     if (key === '1') {
+     if (key === 'head1') {
        setSelectedContent(<Home />); // Render Home component when "Fujitsu Growth" is clicked
+     } else if (key === 'sub3') {
+       setSelectedContent(<CreateTemplate />); // Render CreateTemplate component when "Create Template" is clicked
      }
    };
 
@@ -98,6 +101,7 @@ const App: React.FC = () => {
             defaultOpenKeys={['sub1']}
             style={{ height: '100%', borderRight: 0 }}
             items={items2}
+            onClick={(e) => handleMenuClick(e.key)} // Handle menu click for items2
           />
         </Sider>
         <Layout style={{ padding: '24px 24px 24px 24px' }}>
