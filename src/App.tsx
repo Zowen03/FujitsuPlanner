@@ -15,7 +15,7 @@ import CreateTemplate from './pages/CreateTemplate.jsx';
 import TemplateList from './Pages/viewTemplate.jsx';
 import Calendar from './pages/Calendar.jsx';
 import { UserContext, UserProvider } from './Auth/UserContext.tsx';
-import { getAssignments, getTemplates } from './api';
+import { getAssignments, getTemplates } from './api.ts';
 
 const { Header, Content, Sider } = Layout;
 
