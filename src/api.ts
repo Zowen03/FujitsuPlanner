@@ -1,32 +1,66 @@
-export const register = async (username, password) => {
+interface RegisterPayload {
+  username: string;
+  password: string;
+}
+
+interface RegisterResponse {
+  success: boolean;
+  token?: string;
+  error?: string;
+}
+
+export const register = async (username: string, password: string): Promise<RegisterResponse> => {
   const response = await fetch('http://localhost:3000/api/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password } as RegisterPayload),
     credentials: 'include'
   });
-  return await response.json();
+  return await response.json() as RegisterResponse;
 };
   
-export const login = async (username, password) => {
+interface LoginPayload {
+  username: string;
+  password: string;
+}
+
+interface LoginResponse {
+  success: boolean;
+  token?: string;
+  error?: string;
+}
+
+export const login = async (username: string, password: string): Promise<LoginResponse> => {
   console.log('Login payload:', { username, password }); // Debugging
   const response = await fetch('http://localhost:3000/api/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password } as LoginPayload),
     credentials: 'include' // Ensure credentials are included for session
   });
-  return await response.json();
+  return await response.json() as LoginResponse;
 };
 
-export const createTemplate = async (templateData) => {
+interface TemplateData {
+  name: string;
+  description?: string;
+  [key: string]: unknown; // Allow additional properties with explicit type checking
+}
+
+interface CreateTemplateResponse {
+  success: boolean;
+  templateId?: string;
+  error?: string;
+}
+
+export const createTemplate = async (templateData: TemplateData): Promise<CreateTemplateResponse> => {
   const response = await fetch('http://localhost:3000/api/templates', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(templateData),
     credentials: 'include', // Include credentials for session
   });
-  return await response.json();
+  return await response.json() as CreateTemplateResponse;
 };
 
 export const getTemplates = async (search = '') => {
@@ -47,9 +81,20 @@ export const getTemplates = async (search = '') => {
   }
 };
 
-export const getTemplateById = async (id) => {
+interface TemplateDetailsResponse {
+  success: boolean;
+  template?: {
+    id: string;
+    name: string;
+    description?: string;
+    [key: string]: unknown; // Allow additional properties
+  };
+  error?: string;
+}
+
+export const getTemplateById = async (id: string): Promise<TemplateDetailsResponse> => {
   const response = await fetch(`http://localhost:3000/api/templates/${id}`);
-  return await response.json();
+  return await response.json() as TemplateDetailsResponse;
 };
 
 export const checkSession = async () => {
@@ -68,12 +113,23 @@ export const checkSession = async () => {
     }
     
     return await response.json();
-  } catch (error) {
+  } catch {
     return { success: false, error: 'Network error' };
   }
 };
 
-export const assignTemplate = async (data) => {
+interface AssignTemplateData {
+  templateId: string;
+  userId: string;
+  [key: string]: unknown; // Allow additional properties
+}
+
+interface AssignTemplateResponse {
+  success: boolean;
+  error?: string;
+}
+
+export const assignTemplate = async (data: AssignTemplateData): Promise<AssignTemplateResponse> => {
   try {
       const response = await fetch('http://localhost:3000/api/assignments', { // Full URL to backend
           method: 'POST',
@@ -88,10 +144,10 @@ export const assignTemplate = async (data) => {
           throw new Error(`Error: ${response.statusText}`);
       }
       
-      return await response.json();
-  } catch (error) {
-      console.error('Failed to assign template:', error);
-      return { success: false, error: error.message };
+      return await response.json() as AssignTemplateResponse;
+  } catch {
+      console.error('Failed to assign template');
+      return { success: false, error: 'An error occurred' };
   }
 };
 

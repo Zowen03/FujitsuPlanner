@@ -5,50 +5,79 @@ import {
   LaptopOutlined,
   NotificationOutlined,
   UserOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Button, Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, theme, Spin } from 'antd';
 import Home from './pages/Home.jsx';
 import RegLog from './Auth/RegLog.jsx';
 import CreateTemplate from './pages/CreateTemplate.jsx';
 import TemplateList from './Pages/viewTemplate.jsx';
+import Calendar from './pages/Calendar.jsx';
 import { UserContext, UserProvider } from './Auth/UserContext.tsx';
-import { getAssignments } from './api';
+import { getAssignments, getTemplates } from './api.ts';
 
 const { Header, Content, Sider } = Layout;
 
 const AppContent: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [selectedContent, setSelectedContent] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   
   interface Assignment {
     id: string;
+    templateId: string;
     templateName?: string;
     startDate: string;
     hoursPerWeek: number;
     status?: string;
   }
 
+  interface Template {
+    id: string;
+    name: string;
+    tasks: Array<{
+      id: string;
+      name: string;
+      time: number;
+    }>;
+    createdAt: string;
+    createdBy: string;
+  }
+
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
   const { loggedInUser } = useContext(UserContext);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   useEffect(() => {
-    const fetchAssignments = async () => {
-      if (loggedInUser) {
-        try {
-          const data = await getAssignments();
-          setAssignments(data);
-        } catch (error) {
-          console.error('Failed to fetch assignments:', error);
-        }
-      } else {
+    const fetchData = async () => {
+      if (!loggedInUser) {
         setAssignments([]);
+        setTemplates([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const [assignmentsData, templatesData] = await Promise.all([
+          getAssignments(),
+          getTemplates()
+        ]);
+        setAssignments(assignmentsData);
+        setTemplates(templatesData);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchAssignments();
+
+    fetchData();
   }, [loggedInUser]);
 
   const items1: MenuProps['items'] = [
@@ -71,7 +100,7 @@ const AppContent: React.FC = () => {
         ? assignments.map(assignment => ({
             key: `assignment-${assignment.id}`,
             label: assignment.templateName || `Plan ${assignment.id.slice(0, 4)}...`,
-            icon: <LaptopOutlined />,
+            icon: <CalendarOutlined />,
           }))
         : [{
             key: 'no-assignments',
@@ -92,18 +121,30 @@ const AppContent: React.FC = () => {
   ];
 
   const renderContent = () => {
+    if (loading) {
+      return <Spin size="large" style={{ display: 'flex', justifyContent: 'center', marginTop: '20%' }} />;
+    }
+
     switch (selectedContent) {
       case 'home':
         return <Home />;
       case 'create-template':
-        return <CreateTemplate />;
+        return <CreateTemplate onTemplateCreated={refreshData} />;
       case 'view-templates':
-        return <TemplateList onAssignmentCreated={refreshAssignments} />;
+        return <TemplateList templates={templates} onAssignmentCreated={refreshData} />;
+      case 'calendar':
+          return (
+            <Calendar 
+              assignments={selectedAssignmentId 
+                ? assignments.filter(a => a.id === selectedAssignmentId) 
+                : assignments}
+              templates={templates} 
+            />
+          );
       case 'assignment':
         return (
           <div style={{ padding: '24px' }}>
             <h2>Assignment Details</h2>
-            {/* Add assignment details rendering logic here */}
           </div>
         );
       default:
@@ -119,23 +160,34 @@ const AppContent: React.FC = () => {
   const handleMenuClick = (key: string) => {
     if (key === 'head1') {
       setSelectedContent('home');
+      setSelectedAssignmentId(null);
     } else if (key === 'sub3') {
       setSelectedContent('create-template');
+      setSelectedAssignmentId(null);
     } else if (key === 'sub2') {
       setSelectedContent('view-templates');
+      setSelectedAssignmentId(null);
     } else if (key.startsWith('assignment-')) {
-      setSelectedContent('assignment');
-      // Add logic to handle assignment-specific details if needed
+      const assignmentId = key.replace('assignment-', '');
+      setSelectedAssignmentId(assignmentId);
+      setSelectedContent('calendar');
     }
   };
 
-  const refreshAssignments = async () => {
+  const refreshData = async () => {
     if (loggedInUser) {
       try {
-        const data = await getAssignments();
-        setAssignments(data);
+        setLoading(true);
+        const [assignmentsData, templatesData] = await Promise.all([
+          getAssignments(),
+          getTemplates()
+        ]);
+        setAssignments(assignmentsData);
+        setTemplates(templatesData);
       } catch (error) {
-        console.error('Failed to fetch assignments:', error);
+        console.error('Failed to refresh data:', error);
+      } finally {
+        setLoading(false);
       }
     }
   };
