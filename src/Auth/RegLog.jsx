@@ -98,7 +98,8 @@ const RegLog = ({ modalOpen: propModalOpen, setModalOpen: propSetModalOpen }) =>
                   type="primary" 
                     onClick={() => loggedInUser ? setLogoutModalOpen(true) : setModalOpen(true)}
                     style={{ 
-                        height: 'auto', // Allow button to expand vertically
+                        height: '99%', // Allow button to expand vertically
+                        width: '95%', // Allow button to expand horizontally
                         padding: '12px 16px', // Adjust padding as needed
                         display: 'flex',
                         flexDirection: 'column',
