@@ -1,0 +1,20 @@
+.day-cell {
+    min-height: 80px;
+    padding: 4px;
+  }
+  
+  .task-event {
+    margin: 2px 0;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .task-text {
+    cursor: help; /* Indicates tooltip availability */
+  }
+  
+  .ant-picker-calendar-full .ant-picker-panel {
+    height: calc(100% - 40px) !important;
+  }
